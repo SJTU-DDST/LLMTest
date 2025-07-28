@@ -2,13 +2,15 @@
 
 对 LLM 进行性能测试，包括 F1-Score，Rogue-L，困惑度等
 
+以下内容均以 uv 为例
+
 ## 安装方式（快速，推荐）
 
 ```bash
 uv pip install git+ssh://git@github.com/SJTU-DDST/LLMTest.git
 ```
 
-## 安装方式（一般）
+## 安装方式（可修改）
 
 下载并放入 3rd 文件夹
 
@@ -17,7 +19,7 @@ git submodule add git@github.com:SJTU-DDST/LLMTest.git 3rd/llmtest
 # git submodule update --init --recursive
 ```
 
-安装（推荐均使用 uv）
+安装
 
 ```bash
 # uv venv / uv sync
