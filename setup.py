@@ -14,7 +14,8 @@ setup(
 
     url="https://github.com/SJTU-DDST/LLMTest",
 
-    packages=find_packages(),
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
 
     classifiers=[
         "Development Status :: 3 - Alpha",

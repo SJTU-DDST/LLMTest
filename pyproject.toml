@@ -29,3 +29,6 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/SJTU-DDST/LLMTest"
 Issues = "https://github.com/SJTU-DDST/LLMTest/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
