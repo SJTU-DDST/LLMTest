@@ -1,4 +1,4 @@
-# LMTest
+# LLMTest
 
 对 LLM 进行性能测试，包括 F1-Score，Rogue-L，困惑度等
 
