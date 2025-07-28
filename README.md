@@ -5,7 +5,7 @@
 ## 安装方式（快速）
 
 ```bash
-uv pip install git+git@github.com:SJTU-DDST/LLMTest.git
+uv pip install git+ssh://git@github.com/SJTU-DDST/LLMTest.git
 ```
 
 ## 安装方式（一般）
