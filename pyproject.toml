@@ -21,10 +21,11 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 
-# dependencies = [
-#   "requests>=2.25.1",
-#   "numpy",
-# ]
+dependencies = [
+    "tqdm",
+    "loguru",
+    "rouge_score",
+]
 
 [project.urls]
 Homepage = "https://github.com/SJTU-DDST/LLMTest"

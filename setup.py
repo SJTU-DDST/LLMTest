@@ -32,8 +32,9 @@ setup(
 
     python_requires='>=3.9',
 
-    # install_requires=[
-    #     "requests>=2.25.1",
-    #     "numpy",
-    # ],
+    install_requires=[
+        "tqdm",
+        "loguru",
+        "rouge_score",
+    ],
 )

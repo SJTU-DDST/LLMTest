@@ -1,4 +1,6 @@
-from LLMTest import LLMTest
+from LLMTest import LLMTest, change_log_level
+
+# change_log_level("DEBUG")
 
 def LLM(prompts):
     return ["Paris"] * len(prompts)
