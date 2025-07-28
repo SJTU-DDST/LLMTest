@@ -2,7 +2,7 @@
 
 对 LLM 进行性能测试，包括 F1-Score，Rogue-L，困惑度等
 
-## 安装方式（快速）
+## 安装方式（快速，推荐）
 
 ```bash
 uv pip install git+ssh://git@github.com/SJTU-DDST/LLMTest.git
@@ -26,17 +26,23 @@ uv pip install -e 3rd/llmtest
 
 ## 使用方式
 
+创建 `test.py`，写入
+
 ```python
 from LLMTest import LLMTest
 
 def LLM(prompts):
-    return "Paris"
+    return ["Paris"] * len(prompts)
 
 batch_id, prompts = LLMTest.get()
 answers = LLM(prompts)
 score = LLMTest.score(batch_id, answers)
 
 print(score)
+```
+
+```bash
+uv run test.py
 ```
 
 ## 开发
