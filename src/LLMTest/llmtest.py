@@ -10,19 +10,17 @@ from .dataset import DATASET_CONFIG
 class LLMTest:
 
     def __init__(
-        self, dataset_path="openai_humaneval", dataset_name=None
+        self, dataset_path, dataset_name=None
     ):
         os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 
-        if dataset_name is None:
-            dataset_name = dataset_path
         self.dataset_path = dataset_path
         self.dataset_name = dataset_name
 
         if dataset_path not in DATASET_CONFIG:
             raise ValueError(f"Dataset path '{dataset_path}' not found in DATASET_CONFIG.")
         if dataset_name not in DATASET_CONFIG[dataset_path]["__names__"]:
-            raise ValueError(f"Dataset name '{dataset_name}' not found in DATASET_CONFIG for path '{dataset_path}'.")
+            raise ValueError(f"Dataset name '{dataset_name}' not found in DATASET_CONFIG for path '{dataset_path}'. Available names: {DATASET_CONFIG[dataset_path]['__names__']}")
 
         self.pos = 0
         self.batch_start_size_cache = {}
@@ -64,7 +62,7 @@ class LLMTest:
 
     def get_questions(self, batch_id: str) -> list[str]:
         if batch_id not in self.batch_start_size_cache:
-            raise ValueError(f"Batch ID {batch_id} not found in cache. use get() first.")
+            raise ValueError(f"Batch ID '{batch_id}' not found in cache. use get() first.")
         test_class, pos, size = self.batch_start_size_cache[batch_id]
         dataset_cut = self.dataset[test_class][pos:pos + size]
         questions = dataset_cut[self.question_key]
@@ -75,7 +73,7 @@ class LLMTest:
             questions = [f"{q}\n{q2}" for q, q2 in zip(questions, questions_2)]
         if self.is_choice and self.choice_key_out:
             choice_prompt = dataset_cut[self.choice_key]
-            LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+            LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
             choice_prompt = [f"\nChoices: {'\t'.join([f'{LABELS[i]}, {c}' for i, c in enumerate(choices)])}" for choices in choice_prompt]
             questions = [f"{q} {c}" for q, c in zip(questions, choice_prompt)]
         if self.should_add_answer_prompt:
@@ -84,7 +82,7 @@ class LLMTest:
 
     def get_truths(self, batch_id: str) -> list[list[str]]:
         if batch_id not in self.batch_start_size_cache:
-            raise ValueError(f"Batch ID {batch_id} not found in cache. use get() first.")
+            raise ValueError(f"Batch ID '{batch_id}' not found in cache. use get() first.")
         test_class, pos, size = self.batch_start_size_cache[batch_id]
         dataset_cut = self.dataset[test_class][pos:pos + size]
         answers = dataset_cut[self.answer_key]
@@ -129,15 +127,38 @@ class LLMTest:
             score = scorer.score(gold, pred)['rougeL'].fmeasure
             max_score = max(max_score, score)
         return max_score
+    
+    @staticmethod
+    def __check_single_choice(answer: str, truths: list[str]) -> float:
+        answer = answer.strip().lower()[-40:]
+        truths = [truth.strip().lower() if isinstance(truth, str) else chr(truth + ord('a')) for truth in truths]
+        if len(answer) == 1:
+            logger.debug(f"Good answer: '{answer}', truths: {truths}")
+            if answer in truths:
+                logger.debug(f"Matched")
+                return 1.0
+            else:
+                logger.debug(f"Not match")
+                return 0.0
+        match = re.search(r"(?:answer|result|option|答案).*?([a-e])", answer)
+        logger.debug(f"Use answer[-40:]: '{answer}', truths: {truths}")
+        if match:
+            data = match.group(1)
+            logger.debug(f"Extracted data: '{data}'")
+            if data in truths:
+                return 1.0
+        else:
+            logger.debug(f"Not found")
+        return 0.0
 
     def f1_score(self, batch_id: str, answers: list[str]) -> float:
         total_score = 0
-        total_len = len(answers)
-        for i, ans in enumerate(answers):
+        total_len = self.batch_start_size_cache[batch_id][2]
+        for i in range(total_len):
             truths = self.get_truths(batch_id)[i]
-            now_score = self.__check_f1_score(ans, truths)
+            now_score = self.__check_f1_score(answers[i], truths)
             total_score += now_score
-            logger.debug(f"answer: {ans}, truths: {truths}")
+            logger.debug(f"answer: {answers[i]}, truths: {truths}")
             logger.debug(f"Batch ID: {batch_id}, Index: {i}, F1 Score: {now_score}")
         result = total_score / total_len if total_len > 0 else 0.0
         logger.info(f"Total F1 Score for Batch ID {batch_id}: {result}")
@@ -145,27 +166,38 @@ class LLMTest:
 
     def rogue_l(self, batch_id: str, answers: list[str]) -> float:
         total_score = 0
-        total_len = len(answers)
-        for i, ans in enumerate(answers):
+        total_len = self.batch_start_size_cache[batch_id][2]
+        for i in range(total_len):
             truths = self.get_truths(batch_id)[i]
-            now_score = self.__check_rogue_l(ans, truths)
+            now_score = self.__check_rogue_l(answers[i], truths)
             total_score += now_score
-            logger.debug(f"answer: {ans}, truths: {truths}")
+            logger.debug(f"answer: {answers[i]}, truths: {truths}")
             logger.debug(f"Batch ID: {batch_id}, Index: {i}, Rouge-L Score: {now_score}")
         result = total_score / total_len if total_len > 0 else 0.0
         logger.info(f"Total Rouge-L Score for Batch ID {batch_id}: {result}")
+        return result
+
+    def single_choice_score(self, batch_id: str, answers: list[str]) -> float:
+        total_score = 0
+        total_len = self.batch_start_size_cache[batch_id][2]
+        for i in range(total_len):
+            truths = self.get_truths(batch_id)[i]
+            now_score = self.__check_single_choice(answers[i], truths)
+            total_score += now_score
+            logger.debug(f"answer: {answers[i]}, truths: {truths}")
+            logger.debug(f"Batch ID: {batch_id}, Index: {i}, Single Choice Score: {now_score}")
+        result = total_score / total_len if total_len > 0 else 0.0
+        logger.info(f"Total Single Choice Score for Batch ID {batch_id}: {result}")
         return result
 
     def score(self, batch_id: str, answers: list[str]) -> dict[str, float]:
         if self.is_choice and self.is_multi_choice:
             # TODO
             print("Multi-choice scoring is not implemented yet.")
-            return { "accuracy": 0 }
+            return { "accuracy": 0.0 }
 
         elif self.is_choice:
-            # TODO
-            print("Single-choice scoring is not implemented yet.")
-            return { "accuracy": 0 }
+            return { "accuracy": self.single_choice_score(batch_id, answers) }
 
         return {
             "f1_score": self.f1_score(batch_id, answers),

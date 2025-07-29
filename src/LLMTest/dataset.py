@@ -29,7 +29,7 @@ DATASET_CONFIG = {
         },
     },
     "openai_humaneval": {
-        "__names__": ['openai_humaneval'],
+        "__names__": [None],
         "__default__": {
             "test_class": "test",
             # "features": ['task_id', 'prompt', 'canonical_solution', 'test', 'entry_point'],

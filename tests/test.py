@@ -1,7 +1,7 @@
 from LLMTest import LLMTest, change_log_level
 
 def LLM(prompts):
-    return ["Paris"] * len(prompts)
+    return ["Paris", "the final answer is A"] * len(prompts)
 
 change_log_level("DEBUG")
 
@@ -51,19 +51,19 @@ print()
 
 
 
-tester = LLMTest("L4NLP/LEval", "natural_question")
+# tester = LLMTest("L4NLP/LEval", "natural_question")
 
-batch_id, prompts = tester.get(10)
-print(batch_id)
-print()
-print(prompts)
-print()
-answers = LLM(prompts)
-print(answers)
-print()
-correct = tester.get_truths(batch_id)
-print(correct)
-print()
-score = tester.score(batch_id, answers)
-print(score)
-print()
+# batch_id, prompts = tester.get(10)
+# print(batch_id)
+# print()
+# print(prompts)
+# print()
+# answers = LLM(prompts)
+# print(answers)
+# print()
+# correct = tester.get_truths(batch_id)
+# print(correct)
+# print()
+# score = tester.score(batch_id, answers)
+# print(score)
+# print()
