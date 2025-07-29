@@ -74,7 +74,7 @@ class LLMTest:
         if self.is_choice and self.choice_key_out:
             choice_prompt = dataset_cut[self.choice_key]
             LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-            choice_prompt = [f"\nChoices: {'\t'.join([f'{LABELS[i]}, {c}' for i, c in enumerate(choices)])}" for choices in choice_prompt]
+            choice_prompt = [f"\nChoices: {'  '.join([f'{LABELS[i]}, {c}' for i, c in enumerate(choices)])}" for choices in choice_prompt]
             questions = [f"{q} {c}" for q, c in zip(questions, choice_prompt)]
         if self.should_add_answer_prompt:
             questions = [f"{q}\nAnswer: " for q in questions]
