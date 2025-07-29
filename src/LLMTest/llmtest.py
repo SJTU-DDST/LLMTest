@@ -140,7 +140,7 @@ class LLMTest:
             else:
                 logger.debug(f"Not match")
                 return 0.0
-        match = re.search(r"(?:answer|result|option|答案)?.*?([a-e])", answer)
+        match = re.search(r"(?:answer|result|option|答案).*?([a-e])", answer)
         logger.debug(f"Use answer: '{answer}', truths: {truths}")
         if match:
             data = match.group(1)
@@ -148,7 +148,10 @@ class LLMTest:
             if data in truths:
                 return 1.0
         else:
-            logger.debug(f"Not found")
+            data = answer[0]
+            logger.debug(f"Not found, use first char: '{data}'")
+            if data in truths:
+                return 1.0
         return 0.0
 
     def f1_score(self, batch_id: str, answers: list[str]) -> float:
