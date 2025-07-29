@@ -130,7 +130,7 @@ class LLMTest:
     
     @staticmethod
     def __check_single_choice(answer: str, truths: list[str]) -> float:
-        answer = answer.strip().lower()[-40:]
+        answer = answer.strip().lower()
         truths = [truth.strip().lower() if isinstance(truth, str) else chr(truth + ord('a')) for truth in truths]
         if len(answer) == 1:
             logger.debug(f"Good answer: '{answer}', truths: {truths}")
@@ -140,8 +140,8 @@ class LLMTest:
             else:
                 logger.debug(f"Not match")
                 return 0.0
-        match = re.search(r"(?:answer|result|option|答案).*?([a-e])", answer)
-        logger.debug(f"Use answer[-40:]: '{answer}', truths: {truths}")
+        match = re.search(r"(?:answer|result|option|答案)?.*?([a-e])", answer)
+        logger.debug(f"Use answer: '{answer}', truths: {truths}")
         if match:
             data = match.group(1)
             logger.debug(f"Extracted data: '{data}'")
