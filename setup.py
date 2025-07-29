@@ -35,6 +35,7 @@ setup(
     install_requires=[
         "tqdm",
         "loguru",
+        "datasets",
         "rouge_score",
     ],
 )
