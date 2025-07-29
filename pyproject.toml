@@ -24,7 +24,7 @@ classifiers = [
 dependencies = [
     "tqdm",
     "loguru",
-    "datasets",
+    "datasets==3.6.0",
     "rouge_score",
 ]
 

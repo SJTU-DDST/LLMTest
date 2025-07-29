@@ -36,5 +36,36 @@ DATASET_CONFIG = {
             "question_key": "prompt",
             "answer_key": "canonical_solution",
         },
-    }
+    },
+    "L4NLP/LEval": {
+        "__names__": [
+            # "coursera",  # multi + many
+            # "gsm100",  # math (answer)
+            # "quality",  # single + many
+            "topic_retrieval_longchat",  # f1
+            # "tpo",  # single + many
+            "financial_qa",  # f1
+            "gov_report_summ",  # f1
+            "legal_contract_qa",  # f1
+            "meeting_summ",  # f1
+            "multidoc_qa",  # f1
+            "narrative_qa",  # f1
+            "natural_question",  # f1
+            "news_summ",  # f1
+            "paper_assistant",  # f1
+            "patent_summ",  # f1
+            "review_summ",  # f1
+            "scientific_qa",  # f1
+            "tv_show_summ"  # f1
+        ],
+        "__default__": {
+            "test_class": "test",
+            # "features": ['instructions', 'input', 'outputs', 'source', 'evaluation'],
+            "question_key": "input",
+            "question_key_2": "instructions",  # [default: None]
+            "answer_key": "outputs",
+            "should_add_answer_prompt": True,
+            "many_question2_and_answers": True,  # [default: False]  if True, question_2 and answers are a list of strings, CANNOT use with have_different_answers
+        },
+    },
 }
