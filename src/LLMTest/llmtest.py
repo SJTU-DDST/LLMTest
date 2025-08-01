@@ -169,6 +169,14 @@ class LLMTest:
                 return 1.0
         return 0.0
 
+    @staticmethod
+    def __check_if_first_word_same(answer: str, truths: list[str]) -> float:
+        answer = re.sub(r'[^\w\s]', '', answer.strip().lower())
+        first_word = answer.split()[0] if answer else ""
+        if first_word in [truth.strip().lower() for truth in truths]:
+            return 1.0
+        return 0.0
+
     def f1_score(self, batch_id: str, answers: list[str]) -> float:
         total_score = 0
         total_len = self.batch_start_size_cache[batch_id][2]
@@ -208,6 +216,19 @@ class LLMTest:
         logger.info(f"Total Single Choice Score for Batch ID {batch_id}: {result}")
         return result
 
+    def first_word_score(self, batch_id: str, answers: list[str]) -> float:
+        total_score = 0
+        total_len = self.batch_start_size_cache[batch_id][2]
+        for i in range(total_len):
+            truths = self.get_truths(batch_id)[i]
+            now_score = self.__check_if_first_word_same(answers[i], truths)
+            total_score += now_score
+            logger.debug(f"answer: {answers[i]}, truths: {truths}")
+            logger.debug(f"Batch ID: {batch_id}, Index: {i}, First Word Score: {now_score}")
+        result = total_score / total_len if total_len > 0 else 0.0
+        logger.info(f"Total First Word Score for Batch ID {batch_id}: {result}")
+        return result
+
     def score(self, batch_id: str, answers: list[str]) -> dict[str, float]:
 
         if self.is_multi_choice:
@@ -219,9 +240,10 @@ class LLMTest:
             return { "accuracy": self.single_choice_score(batch_id, answers) }
 
         elif self.is_guess_next:
-            return { "accuracy": self.f1_score(batch_id, answers) }
+            return { "accuracy": self.first_word_score(batch_id, answers) }
 
-        return {
-            "f1_score": self.f1_score(batch_id, answers),
-            "rogue_l": self.rogue_l(batch_id, answers)
-        }
+        else:
+            return {
+                "f1_score": self.f1_score(batch_id, answers),
+                "rogue_l": self.rogue_l(batch_id, answers)
+            }
