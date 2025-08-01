@@ -27,20 +27,30 @@ class LLMTest:
 
         CONFIG_KEY = "__default__" if dataset_name not in DATASET_CONFIG[dataset_path] else dataset_name
         CONFIG = DATASET_CONFIG[dataset_path].get(CONFIG_KEY, {})
+
         self.test_class = CONFIG.get("test_class", "test")
+
         self.question_key = CONFIG.get("question_key", "question")
         self.question_key_2 = CONFIG.get("question_key_2", None)
+
         self.answer_key = CONFIG.get("answer_key", "answer")
         self.choice_key = CONFIG.get("choice_key", "choices")
-        self.should_add_answer_prompt = CONFIG.get("should_add_answer_prompt", False)
-        self.have_different_answers = CONFIG.get("have_different_answers", False)
-        self.is_choice = CONFIG.get("is_choice", False)
-        self.is_multi_choice = CONFIG.get("is_multi_choice", False)
         self.choice_key_out = CONFIG.get("choice_key_out", True)
+        self.should_add_answer_prompt = CONFIG.get("should_add_answer_prompt", False)
+
+        # mutually exclusive
+        self.have_different_answers = CONFIG.get("have_different_answers", False)
         self.many_question2_and_answers = CONFIG.get("many_question2_and_answers", False)
 
+        # mutually exclusive
+        self.is_guess_next = CONFIG.get("is_guess_next", False)
+        self.is_choice = CONFIG.get("is_choice", False)
+        self.is_multi_choice = CONFIG.get("is_multi_choice", False)
+
+
+
         logger.info(f"Loading dataset from '{dataset_path}' with name '{dataset_name}'")
-        self.dataset: dict[str, dict] = load_dataset(dataset_path, dataset_name, trust_remote_code=True, download_mode="force_redownload")
+        self.dataset: dict[str, dict] = load_dataset(dataset_path, dataset_name)
         logger.info("Dataset loaded successfully.")
 
         if self.test_class not in self.dataset:
@@ -66,12 +76,14 @@ class LLMTest:
         test_class, pos, size = self.batch_start_size_cache[batch_id]
         dataset_cut = self.dataset[test_class][pos:pos + size]
         questions = dataset_cut[self.question_key]
+        if self.is_guess_next:
+            questions = [" ".join(q.split()[:-1]) + " " for q in questions]
         if self.question_key_2 is not None:
             questions_2 = dataset_cut[self.question_key_2]
             if self.many_question2_and_answers:
                 questions_2 = ["?\n".join(q2) for q2 in questions_2]
             questions = [f"{q}\n{q2}" for q, q2 in zip(questions, questions_2)]
-        if self.is_choice and self.choice_key_out:
+        if (self.is_choice or self.is_multi_choice) and self.choice_key_out:
             choice_prompt = dataset_cut[self.choice_key]
             LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
             choice_prompt = [f"\nChoices: {'  '.join([f'{LABELS[i]}, {c}' for i, c in enumerate(choices)])}" for choices in choice_prompt]
@@ -85,6 +97,9 @@ class LLMTest:
             raise ValueError(f"Batch ID '{batch_id}' not found in cache. use get() first.")
         test_class, pos, size = self.batch_start_size_cache[batch_id]
         dataset_cut = self.dataset[test_class][pos:pos + size]
+        if self.is_guess_next:
+            answers = [q.split()[-1] for q in dataset_cut[self.question_key]]
+            return [[ans] for ans in answers]
         answers = dataset_cut[self.answer_key]
         if self.many_question2_and_answers:
             answers = ["\n".join(ans) for ans in answers]
@@ -127,7 +142,7 @@ class LLMTest:
             score = scorer.score(gold, pred)['rougeL'].fmeasure
             max_score = max(max_score, score)
         return max_score
-    
+
     @staticmethod
     def __check_single_choice(answer: str, truths: list[str]) -> float:
         answer = answer.strip().lower()
@@ -194,13 +209,17 @@ class LLMTest:
         return result
 
     def score(self, batch_id: str, answers: list[str]) -> dict[str, float]:
-        if self.is_choice and self.is_multi_choice:
+
+        if self.is_multi_choice:
             # TODO
             print("Multi-choice scoring is not implemented yet.")
             return { "accuracy": 0.0 }
 
         elif self.is_choice:
             return { "accuracy": self.single_choice_score(batch_id, answers) }
+
+        elif self.is_guess_next:
+            return { "accuracy": self.f1_score(batch_id, answers) }
 
         return {
             "f1_score": self.f1_score(batch_id, answers),

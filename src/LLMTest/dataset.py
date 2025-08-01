@@ -21,13 +21,13 @@ DATASET_CONFIG = {
             "question_key": "question",  # [default: "question"]
             "answer_key": "answer",  # [default: "answer"]
             "choice_key": "choices",  # [default: "choices"]
+            "choice_key_out": True,  # [default: True]  if True, choices are out of the question and should be appended to the question
             "should_add_answer_prompt": True,  # [default: False]  if True, append "\nAnswer: " to question
             "have_different_answers": False,  # [default: False]  if True, answers are a list of strings
             "is_choice": True,  # [default: False]
-            "is_multi_choice": False,  # [default: False]
-            "choice_key_out": True,  # [default: True]  if True, choices are out of the question and should be appended to the question
         },
     },
+
     "openai_humaneval": {
         "__names__": [None],
         "__default__": {
@@ -37,26 +37,39 @@ DATASET_CONFIG = {
             "answer_key": "canonical_solution",
         },
     },
+
+    "cimec/lambada": {
+        "__names__": ['plain_text'],
+        "__default__": {
+            "test_class": "test",
+            # "features": ['text', 'domain'],
+            "question_key": "text",
+            "is_guess_next": True,  # [default: False]  if True, the question is a text and the answer is the next word
+        },
+    },
+
+    # this need to be download first using datasets<=3.6.0
+    # datasets==4.0.0 will occur error
     "L4NLP/LEval": {
         "__names__": [
             # "coursera",  # multi + many
             # "gsm100",  # math (answer)
             # "quality",  # single + many
-            "topic_retrieval_longchat",  # f1
             # "tpo",  # single + many
-            "financial_qa",  # f1
-            "gov_report_summ",  # f1
-            "legal_contract_qa",  # f1
-            "meeting_summ",  # f1
-            "multidoc_qa",  # f1
-            "narrative_qa",  # f1
-            "natural_question",  # f1
-            "news_summ",  # f1
-            "paper_assistant",  # f1
-            "patent_summ",  # f1
-            "review_summ",  # f1
-            "scientific_qa",  # f1
-            "tv_show_summ"  # f1
+            "topic_retrieval_longchat",  # f1/rl
+            "financial_qa",  # f1/rl
+            "gov_report_summ",  # f1/rl
+            "legal_contract_qa",  # f1/rl
+            "meeting_summ",  # f1/rl
+            "multidoc_qa",  # f1/rl
+            "narrative_qa",  # f1/rl
+            "natural_question",  # f1/rl
+            "news_summ",  # f1/rl
+            "paper_assistant",  # f1/rl
+            "patent_summ",  # f1/rl
+            "review_summ",  # f1/rl
+            "scientific_qa",  # f1/rl
+            "tv_show_summ"  # f1/rl
         ],
         "__default__": {
             "test_class": "test",

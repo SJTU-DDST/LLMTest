@@ -32,6 +32,24 @@ print(score)
 print()
 
 
+tester = LLMTest("cimec/lambada", "plain_text")
+
+batch_id, prompts = tester.get(10)
+print(batch_id)
+print()
+print(prompts)
+print()
+answers = LLM(prompts)
+print(answers)
+print()
+correct = tester.get_truths(batch_id)
+print(correct)
+print()
+score = tester.score(batch_id, answers)
+print(score)
+print()
+
+
 tester = LLMTest("openai_humaneval")
 
 batch_id, prompts = tester.get(10)
